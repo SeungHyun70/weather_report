@@ -1,0 +1,23 @@
+<?php
+
+/**
+ * @file
+ * Install and uninstall code for Weather Report.
+ */
+
+
+/**
+ * Implements hook_install().
+ */
+function weather_report_install() {
+
+  // Do some things on install, like setting the module weight.
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function weather_report_uninstall() {
+
+  // Do some things on uninstall, like deleting all variables.
+}

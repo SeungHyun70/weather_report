@@ -1,0 +1,108 @@
+<?php
+
+/**
+ * @file
+ * Weather report module for testing.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function weather_report_menu() {
+
+  $items['weather'] = array(
+    'title' => 'Weather report module',
+    'page callback' => 'weather_report_page',
+    'access arguments' => array('access content'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_help().
+ */
+function weather_report_help($path, $arg) {
+
+  switch ($path) {
+    case 'admin/help#weather_report':
+
+      // Return a line-break version of the README.
+      $readme = file_get_contents(drupal_get_path('module', 'weather_report') . '/README.txt');
+      return nl2br($readme);
+  }
+}
+
+/**
+ * Page weather report callback, referenced in hook_menu().
+ * more description will be here.
+ *
+ * @return string
+ *   The content of the page.
+ */
+function weather_report_page() {
+
+	$page = "<table class='weather_table' name='weather_table'>
+				<tr>
+					<form class='zip_form' name='zip_form' action='' onsubmit='' method='POST'>
+						<td>
+							<label class='zip_code' name='zip_code'>ZIP Code:</label>
+							<input type='text' name='zip_code' pattern='[0-9]{5}' title='Five digit zip code' />
+							<input type='submit' class='submit' name='submit' value='Submit' />
+						</td>
+					</form>
+				</tr>
+			";
+	
+	if (isset($_POST['submit'])) {
+
+		$zipcode = (string)$_POST['zip_code'];
+	
+		//get city and state using the zip code
+		$location_url='http://api.zippopotam.us/us/'.$zipcode;
+		$result = file_get_contents($location_url);
+		$place = json_decode($result, true);    
+		$city = $place['places'][0]['place name'];
+		$state = $place['places'][0]['state abbreviation'];
+
+		//collect the weather condition from Yahoo
+		$BASE_URL = "http://query.yahooapis.com/v1/public/yql";
+		$yql_query = 'select item.condition from weather.forecast where woeid in (select woeid from geo.places(1) where text="'.$city.', '.$state.'")';
+		$yql_query_url = $BASE_URL . "?q=" . urlencode($yql_query) . "&format=json";
+		// Make call with cURL
+		$session = curl_init($yql_query_url);
+		curl_setopt($session, CURLOPT_RETURNTRANSFER,true);
+		$json = curl_exec($session);
+		// Convert JSON to PHP object
+		$weather =  json_decode($json, true);
+		$weather_condition = $weather['query']['results']['channel']['item']['condition'];
+		$page .= '<tr>
+					<td>
+						<label class="location" name="location">'.$city.', '.$state.'. '.$zipcode.' '.' Weather</label>
+						<p class="location" name="location">('.$weather_condition["date"].'):</p>
+						<ul>
+							<li>'.$weather_condition["temp"].'&#8457</li>					
+							<li>'.$weather_condition["text"].'</li>
+						</ul>
+					</td>
+				  </tr>';
+	}
+
+	$page .= '</table>';
+	
+	
+	return $page;
+	
+}
+
+/**
+ * Implements hook_page_build().
+ *
+ * Add CSS code.
+ */
+function weather_report_page_build() {
+
+  drupal_add_css(drupal_get_path('module', 'weather_report') . '/css/weather_report.css');
+
+}

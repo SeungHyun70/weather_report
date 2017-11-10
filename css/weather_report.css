@@ -1,0 +1,9 @@
+.custom-module-class {
+	text-align: center;
+}
+table.weather_table{
+	width:60%;
+}
+label.zip_code, input.zip_code, label.location, p.location{
+	display:inline;
+}	

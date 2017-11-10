@@ -1,0 +1,6 @@
+name = weather report
+description = Get weather report using zip code
+package = public-action
+version = VERSION
+core = 7.x
+files[] = weather_report.module
